@@ -97,7 +97,7 @@ class CBS:
         t = 0
         while True:
             sw = False
-            reserved_cells = [[None] * self.world_width] * self.world_height
+            reserved_cells = [[None for _ in range(self.world_width)] for _ in range(self.world_height)]
 
             for ag_id in solution:
                 path = solution[ag_id]
