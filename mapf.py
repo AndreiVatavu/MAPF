@@ -44,6 +44,28 @@ class CBS:
 
         self.agents = agents
 
+    def high_level(self):
+        queue = PriorityQueue()
+        root = Node(depth=0)
+        root.solution = self.get_solution(root)
+        queue.put((0, root))
+
+        while not queue.empty():
+            node = queue.get()
+
+    def get_solution(self, node: Node):
+        solution = []
+        for agent in self.agents:
+            solution.append(self.low_level(agent, node.constraints))
+
+        return solution
+
+    def is_valid(self, solution):
+        pass
+
+    def is_valid(self, solution):
+        pass
+
     def low_level(self, agent_id: int, constraints: List[Tuple[Tuple[int, int], int]],
                   agent_paths: Dict[int, List[Tuple[int, int]]]):
         start, goal = self.agents[agent_id]
@@ -119,26 +141,3 @@ class CBS:
                         if neigh not in open_set:
                             open_set.add(neigh)
         return False
-
-    def high_level(self):
-        queue = PriorityQueue()
-        root = Node(depth=0)
-        root.solution = self.get_solution(root)
-        queue.put((0, root))
-
-        while not queue.empty():
-            node = queue.get()
-
-
-    def get_solution(self, node: Node):
-        solution = []
-        for agent in self.agents:
-            solution.append(self.low_level(agent, node.constraints))
-
-        return solution
-
-    def is_valid(self, solution):
-        pass
-
-    def is_valid(self, solution):
-        pass
