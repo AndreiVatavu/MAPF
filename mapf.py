@@ -132,7 +132,7 @@ class CBS:
                 crt = predecessor[crt]
                 pos, time = crt
                 total_path.append(pos)
-                total_path.reverse()
+            total_path.reverse()
             return total_path
 
         def check_constrained(v) -> bool:
