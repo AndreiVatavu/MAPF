@@ -34,8 +34,10 @@ class Node:
         return self.cost
 
     def sic(self):
-        return self.cost
+        return 0
 
+    def __lt__(self, other: Node):
+        return self.get_cost() < other.get_cost()
 
 class Agent:
 
@@ -60,11 +62,11 @@ class CBS:
         queue = PriorityQueue()
         root = Node(depth=0)
         root.solution = self.get_solution(root)
-        queue.put((0, root))
+        queue.put(root)
 
         while not queue.empty():
             print("Step")
-            _, node = queue.get()
+            node = queue.get()
             conflict = self.get_first_conflict(node.solution)
             if conflict is None:
                 return node.solution
@@ -81,7 +83,7 @@ class CBS:
                 node.solution.pop(ag, None)
                 node.solution[ag] = self.low_level(self.agents[ag], node.constraints[ag], node.solution)
                 if node.solution[ag] is not None and node.get_cost() is not None:
-                    queue.put((node.get_cost(), node))
+                    queue.put(node)
 
     def get_solution(self, node: Node):
         solution = {}
