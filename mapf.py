@@ -31,14 +31,12 @@ class MAPF:
             return abs(pos[0] - goal[0]) + abs(pos[1] - goal[1])
 
         def reconstruct_path(crt):
-            old_pos, old_time = crt
-            total_path = []
+            pos, time = crt
+            total_path = [pos]
             while crt in predecessor:
                 crt = predecessor[crt]
                 pos, time = crt
-                total_path.extend([old_pos] * (time - old_time))
-                old_pos, old_time = pos, time
-            total_path.append(old_pos)
+                total_path.append(pos)
             return total_path.reverse()
 
         def check_constrained(v) -> bool:
