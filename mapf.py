@@ -35,7 +35,7 @@ class Node:
         return self.cost
 
     def sic(self):
-        return 0
+        return sum([len(self.solution[ag_id]) for ag_id in self.solution])
 
     def __lt__(self, other: Node):
         return self.get_cost() < other.get_cost()
@@ -66,11 +66,11 @@ class CBS:
         queue.put(root)
 
         while not queue.empty():
-            print("Step")
-            node = queue.get()
-            conflict = self.get_first_conflict(node.solution)
+            root = queue.get()
+            print(root.depth, root.solution)
+            conflict = self.get_first_conflict(root.solution)
             if conflict is None:
-                return node.solution
+                return root.solution
 
             involved_agents, pos, t = conflict
             for ag in involved_agents:
@@ -89,7 +89,6 @@ class CBS:
     def get_solution(self, node: Node):
         solution = {}
         for agent in self.agents:
-            print("Ag")
             solution[agent.id] = self.low_level(agent, node.constraints.get(agent.id, []), {})
 
         return solution
@@ -97,22 +96,25 @@ class CBS:
     def get_first_conflict(self, solution: Dict[int, List[Tuple[int, int]]]):
         t = 0
         previous_reserved_cells = None
-        while True:
-            sw = False
+
+        sol = deepcopy(solution)
+        n = max([len(sol[x]) for x in sol])
+
+        for x in sol:
+            while len(sol[x]) < n:
+                sol[x].append(sol[x][-1])
+
+        for t in range(n):
             reserved_cells = [[None for _ in range(self.world_width)] for _ in range(self.world_height)]
 
             # Vertex conflict
-            for ag_id in solution:
-                path = solution[ag_id]
-                if t < len(path):
-                    (x, y) = path[t]
-                    sw = True
-                    if reserved_cells[x][y] is None:
-                        reserved_cells[x][y] = ag_id
-                    else:
-                        return [reserved_cells[x][y], ag_id], (x, y), t
-            if not sw:
-                break
+            for ag_id in sol:
+                path = sol[ag_id]
+                (x, y) = path[t]
+                if reserved_cells[x][y] is None:
+                    reserved_cells[x][y] = ag_id
+                else:
+                    return [reserved_cells[x][y], ag_id], (x, y), t
 
             # Edge conflict
             if previous_reserved_cells is not None:
@@ -127,13 +129,9 @@ class CBS:
                             if previous_reserved_cells[x1][y1] == ag:
                                 return [ag, ag_id], (x1, y1), t
 
-            t += 1
             previous_reserved_cells = reserved_cells
 
         return None
-
-    def is_valid(self, solution):
-        pass
 
     def low_level(self, agent: Agent, constraints: List[Tuple[Tuple[int, int], int]],
                   agent_paths: Dict[int, List[Tuple[int, int]]]) -> List[Tuple[int, int]]:
@@ -173,7 +171,7 @@ class CBS:
                 if f_score[v] == min_f_score:
                     num_conflicts = 0
                     for path in agent_paths.values():
-                        if path[time] == v:
+                        if time < len(path) and path[time] == v:
                             num_conflicts += 1
                     if num_conflicts < min_conflicts:
                         min_conflicts = num_conflicts
@@ -213,20 +211,20 @@ class CBS:
 
 
 def print_solution(solution, cbs):
-    t = 0
-    while True:
-        sw = False
-        world = [[' ' for _ in range(cbs.world_width)] for _ in range(cbs.world_height)]
+    sol = deepcopy(solution)
+    n = max([len(sol[x]) for x in sol])
 
-        for ag_id in solution:
-            path = solution[ag_id]
-            if t < len(path):
-                (x, y) = path[t]
-                sw = True
-                world[x][y] = str(ag_id)
-        t += 1
-        if not sw:
-            break
+    for x in sol:
+        while len(sol[x]) < n:
+            sol[x].append(sol[x][-1])
+
+    for t in range(n):
+        world = [[' ' for _ in range(cbs.world_width)] for _ in range(cbs.world_height)]
+        for ag_id in sol:
+            path = sol[ag_id]
+            (x, y) = path[t]
+            sw = True
+            world[x][y] = str(ag_id)
 
         for line in world:
             print('+-' * cbs.world_width + '+')
@@ -240,7 +238,7 @@ def print_solution(solution, cbs):
 
 
 if __name__ == '__main__':
-    agents = [Agent(0, (0, 0), (3, 3)), Agent(1, (3, 0), (0, 3))]
+    agents = [Agent(0, (0, 1), (3, 2)), Agent(1, (1, 0), (2, 3))]
     cbs = CBS(4, 4, agents)
     solution = cbs.high_level()
     print(solution)
