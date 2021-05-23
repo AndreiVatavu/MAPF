@@ -96,10 +96,12 @@ class CBS:
 
     def get_first_conflict(self, solution: Dict[int, List[Tuple[int, int]]]):
         t = 0
+        previous_reserved_cells = None
         while True:
             sw = False
             reserved_cells = [[None for _ in range(self.world_width)] for _ in range(self.world_height)]
 
+            # Vertex conflict
             for ag_id in solution:
                 path = solution[ag_id]
                 if t < len(path):
@@ -109,10 +111,24 @@ class CBS:
                         reserved_cells[x][y] = ag_id
                     else:
                         return [reserved_cells[x][y], ag_id], (x, y), t
-
             if not sw:
                 break
+
+            # Edge conflict
+            if previous_reserved_cells is not None:
+                for ag_id in solution:
+                    path = solution[ag_id]
+                    if t < len(path):
+                        (x0, y0) = path[t - 1]
+                        (x1, y1) = path[t]
+
+                        ag = reserved_cells[x0][y0]
+                        if ag is not None:
+                            if previous_reserved_cells[x1][y1] == ag:
+                                return [ag, ag_id], (x1, y1), t
+
             t += 1
+            previous_reserved_cells = reserved_cells
 
         return None
 
@@ -224,7 +240,7 @@ def print_solution(solution, cbs):
 
 
 if __name__ == '__main__':
-    agents = [Agent(0, (0, 0), (3, 3)), Agent(1, (0, 3), (3, 0))]
+    agents = [Agent(0, (0, 0), (3, 3)), Agent(1, (3, 0), (0, 3))]
     cbs = CBS(4, 4, agents)
     solution = cbs.high_level()
     print(solution)
