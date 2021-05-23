@@ -5,6 +5,7 @@ import operator
 from copy import deepcopy
 from queue import PriorityQueue
 from typing import Tuple, List, Dict
+from time import sleep
 
 
 class Node:
@@ -195,6 +196,37 @@ class CBS:
         return []
 
 
+def print_solution(solution, cbs):
+    t = 0
+    while True:
+        sw = False
+        world = [[' ' for _ in range(cbs.world_width)] for _ in range(cbs.world_height)]
+
+        for ag_id in solution:
+            path = solution[ag_id]
+            if t < len(path):
+                (x, y) = path[t]
+                sw = True
+                world[x][y] = str(ag_id)
+        t += 1
+        if not sw:
+            break
+
+        for line in world:
+            print('+-' * cbs.world_width + '+')
+            print('|', end='')
+            for x in line:
+                print(x + '|', end='')
+            print()
+        print('+-' * cbs.world_width + '+')
+        print()
+        sleep(0.5)
+
+
 if __name__ == '__main__':
-    cbs = CBS(4, 4, [Agent(0, (0, 0), (3, 0)), Agent(1, (3, 0), (3, 3))])
-    print(cbs.high_level())
+    agents = [Agent(0, (0, 0), (3, 3)), Agent(1, (0, 3), (3, 0))]
+    cbs = CBS(4, 4, agents)
+    solution = cbs.high_level()
+    print(solution)
+    print_solution(solution, cbs)
+
