@@ -6,7 +6,11 @@ from random import choice
 from typing import List
 import numpy as np
 import matplotlib.pyplot as plt
-from mapf import Agent, CBS, print_solution
+from mapf import Agent, CBS
+import pandas as pd
+
+
+MAP_SIZE = 8
 
 
 def generate_random_agents(height: int, width: int, num_agents: int) -> List[Agent]:
@@ -22,8 +26,8 @@ def generate_random_agents(height: int, width: int, num_agents: int) -> List[Age
 
 
 def run_cbs(num_agents, queue):
-    agents = generate_random_agents(8, 8, num_agents)
-    cbs = CBS(8, 8, agents)
+    agents = generate_random_agents(MAP_SIZE, MAP_SIZE, num_agents)
+    cbs = CBS(MAP_SIZE, MAP_SIZE, agents)
     start = time.time()
     solution = cbs.high_level()
     duration = time.time() - start
@@ -37,7 +41,7 @@ def run_cbs(num_agents, queue):
 if __name__ == '__main__':
     NUM_INSTANCES = 100
     results = []
-    for num_agents in range(3, 22):
+    for num_agents in range(1, 9):
         print(f"Num agents {num_agents}")
         count = 0
         run_times = []
@@ -86,7 +90,7 @@ if __name__ == '__main__':
     df = pd.DataFrame(data)
     df.update(df[["Low level nodes", "High level nodes", "Run time"]].applymap('{:,.2f}'.format))
     plt.axis('off')
-    plt.title("Nodes generated and running time on 8 × 8 grid", weight='bold')
+    plt.title(f"Nodes generated and running time on {MAP_SIZE} × {MAP_SIZE} grid", weight='bold')
     the_table = plt.table(cellText=df.values, colLabels=df.columns, loc='center')
     plt.savefig(f'table.png', dpi=300)
     plt.clf()

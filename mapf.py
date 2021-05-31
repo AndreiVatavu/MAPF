@@ -35,7 +35,23 @@ class Node:
         return self.cost
 
     def sic(self):
+        return self.soc()
+
+    def soc(self):
         return sum([len(path) for path in self.solution.values()])
+
+    def makespan(self):
+        return max([len(path) for path in self.solution.values()])
+
+    def fuel_cost(self):
+        fuel_cost = 0
+        for path in self.solution.values():
+            old_pos = None
+            for pos in path:
+                if not old_pos or old_pos != pos:
+                    old_pos = pos
+                    fuel_cost += 1
+        return fuel_cost
 
     def __lt__(self, other: Node):
         return self.get_cost() < other.get_cost()
@@ -141,6 +157,7 @@ class CBS:
     def low_level(self, agent: Agent, constraints: List[Tuple[Tuple[int, int], int]],
                   agent_paths: Dict[int, List[Tuple[int, int]]]) -> List[Tuple[int, int]]:
         start, goal = agent.start_state, agent.goal_state
+        count_removed_ll = 0
 
         def h(pos):
             return abs(pos[0] - goal[0]) + abs(pos[1] - goal[1])
@@ -200,8 +217,9 @@ class CBS:
             current = select_lowest()
 
             open_set.remove(current)
+            count_removed_ll += 1
             if current[0] == goal:
-                self.ll_nodes += len(open_set)
+                self.ll_nodes += count_removed_ll + len(open_set)
                 return reconstruct_path(current)
 
             current_pos, current_time = current
@@ -221,7 +239,7 @@ class CBS:
                         f_score[neigh] = g_score[neigh] + h(neigh[0])
                         if neigh not in open_set:
                             open_set.add(neigh)
-        self.ll_nodes += len(open_set)
+        self.ll_nodes += count_removed_ll + len(open_set)
         return []
 
 
